@@ -1,0 +1,320 @@
+﻿@{
+    ViewBag.Title = "Index";
+}
+<html>
+<head>
+    <title></title>
+    <meta charset="utf-8" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="~/Scripts/jquery-2.2.3.min.js"></script>
+    <script src="~/Scripts/pdf.js"></script>
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css">
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"></script>
+    <link href="../content/style.css" rel="stylesheet" />
+
+    <script type="text/javascript">
+
+        var base64String, imageFormat, divCanvas;
+
+        $('#divCanvas').html('');
+        $('#divCanvaslinks').html('');
+
+        $(function () {
+            PDFJS.disableWorker = true;
+
+            $(document).on('click', '#btnConvertPDF', function () {
+                $('#divCanvas').html('');
+                $('#divCanvaslinks').html('');
+                if (!document.getElementById("fileUpload").value) return;
+                $("#divImages").html('');
+                if (window.File && window.FileReader && window.FileList && window.Blob) {
+                    var uint8Array = base64ToUint8Array(base64String);
+                    var pages = document.getElementById('txtPageNos').value;
+                    var pageArray = (pages.indexOf(',') > -1) ? pages.split(',').filter(Number) : [pages].filter(Number);  //issue when converting single page
+                    var scale = document.getElementById('txtImageSize').value || 1;
+                    divCanvas = document.getElementById('divCanvas');
+                    divCanvaslinks = document.getElementById('divCanvaslinks');
+                    var naming = document.getElementById('txtnamingConvention').value;
+                        naming = naming == '' ? 'page_' : naming;
+                    //var desiredWidth = 100;
+                    //var viewport = page.getViewport(1);
+                    //var scale = desiredWidth / viewport.width;
+                    //var scaledViewport = page.getViewport(scale);
+
+                    imageFormat = document.getElementById('ddimageFormat').options[document.getElementById('ddimageFormat').selectedIndex].text || 'PNG';
+
+                    PDFJS.getDocument(uint8Array).then(function (pdf) {
+
+                       var totalpages = pdf.pdfInfo.numPages;
+                        if (pageArray.length == 0)
+                            pageArray = range(totalpages);
+
+                        for (var i = 0, len = pageArray.length; i < len; i++) {
+
+                            if (pageArray[i] > totalpages || pageArray[i] == 0) continue;
+
+                            pdf.getPage(parseInt(pageArray[i])).then(function (page) {
+                                var viewport = page.getViewport(scale);
+                                var pageIndex=(page.pageIndex + 1);
+                                var canvas = document.createElement('canvas'),
+                                context = canvas.getContext('2d');
+                                canvas.id = 'canvas_' + pageIndex;
+
+                                var button = document.createElement('a');
+                                button.href = "#";
+                                button.innerHTML = "download page no " + pageIndex;
+                                button.download = naming + pageIndex + "."+imageFormat;
+                                button.addEventListener('click', function (e) {
+                                    var dataURL = document.getElementById('canvas_' + pageIndex).toDataURL('image/'+imageFormat);
+                                    button.href = dataURL;
+                                });
+
+                                divCanvaslinks.appendChild(button);
+
+                                var brtag = document.createElement('br');
+                                divCanvaslinks.appendChild(brtag);
+
+                                divCanvas.appendChild(canvas);
+                              
+                                canvas.height = viewport.height;
+                                canvas.width = viewport.width;
+
+                                var renderContext = {
+                                    canvasContext: context,
+                                    viewport: viewport
+                                };
+                                page.render(renderContext).then(function () {
+                                    console.log('blah');
+                                });
+                            });
+                        }
+                    });
+                }
+                else {
+                    concole.log('The File APIs are not fully supported in this browser.');
+                }
+
+            });
+
+            $(document).on('change', '#fileUpload', function () {
+
+                var flUpload = document.getElementById('fileUpload');
+                var files = flUpload.files;
+               
+                handleFileSelect(files);
+                $('#divCanvas').html('');
+                $('#divCanvaslinks').html('');
+            });
+
+            $(document).on('keyup', '#txtPageNos', function () {
+                this.value = this.value.replace(/[^\d,]/g, '') //regex to allow only integers and comma
+                if ($(this).val().length == 0)
+                    $('#cbAllPages').prop('checked', 'checked');
+                else
+                    $('#cbAllPages').prop('checked', '');
+            });
+
+            $(document).on('click', '#cbAllPages', function () {
+                document.getElementById('txtPageNos').value = '';
+            });
+
+            $(document).on('change', '#fileUpload', function () {
+                if (this.files.length<=0) return;
+                 if (this.files[0].type == 'application/pdf')
+                    console.log('PDF file chosen');
+                else {
+                    console.log('File is not a PDF . Please choose a PDF');
+                    this.value = '';
+                }
+            });
+
+
+            var dropbox = document.getElementById("dropbox");
+            dropbox.addEventListener("dragenter", dragenter, false);
+            dropbox.addEventListener("dragover", dragover, false);
+            dropbox.addEventListener("drop", drop, false);
+        });
+
+        function dragenter(e) {
+            e.stopPropagation();
+            e.preventDefault();
+        }
+
+        function dragover(e) {
+            e.stopPropagation();
+            e.preventDefault();
+
+
+        }
+        function drop(e) {
+            e.stopPropagation();
+            e.preventDefault();
+            var dt = e.dataTransfer;
+            
+            var ok = dt.files[0].type.indexOf('pdf') >= 0
+            if (ok) {
+                console.log('It is a PDF .');
+                handleFileSelect(dt.files);
+                $('#divCanvas').html('');
+                $('#divCanvaslinks').html('');
+            }
+            else
+                console.log('Not a PDF');
+        }
+
+        function range(end) {
+            var pages = [];
+            for (var i = 1; i <= end; i++) {
+                pages.push(i);
+            }
+            return pages;
+        }
+
+        function handleFileSelect(files) {
+
+            var file = files[0];
+
+            if (files && file) {
+                var reader = new FileReader();
+                reader.onload = function (readerEvt) {
+                    var binaryString = readerEvt.target.result;
+                    base64String = btoa(binaryString);
+                };
+
+                reader.onloadend = function (readerEvt) {
+                    console.log('file reading completed');
+                };
+
+                reader.onerror = function (readerEvt) {
+                    console.log('error in file reading');
+                };
+
+                FileReader.onprogress = function (readerEvt) {
+                    console.log('file reading in progress');
+                };
+
+                reader.readAsBinaryString(file);
+            }
+        };
+
+        function base64ToUint8Array(base64) {
+            var raw = atob(base64); //This is a native function that decodes a base64-encoded string.
+            var uint8Array = new Uint8Array(new ArrayBuffer(raw.length));
+            for (var i = 0; i < raw.length; i++) {
+                uint8Array[i] = raw.charCodeAt(i);
+            }
+
+            return uint8Array;
+        }
+    </script>
+</head>
+<body class="margin-top-10">
+    <div class="container-fluid">
+        <div class="col-sm-12">
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="row">
+                        <h4 class="col-md-12 display-name text-center">
+                            Quick PDF to image converter
+                        </h4>
+
+                    </div>
+                    <div class="row">
+                        <h5 class="col-md-12 text-center">
+                            Without any server processing, just on your browser.
+                        </h5>
+                    </div>
+                </div>
+            <div class="row">
+                <div class="col-sm-12">
+                    <div class="col-sm-8">
+                        <div class="div-content">
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs">Upload a PDF</div>
+                                <div class="col-sm-6 text-left-xs">
+                                    <input id="fileUpload" accept="application/pdf" type="file" value="Upload" name="Upload" class="custom-file-input" />
+                                </div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-center"></div>
+                                <div class="col-sm-6 padding-left-25">Or</div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs">Drop a PDF here</div>
+                                <div class="col-sm-6">
+                                    <div id="dropbox" style="width:300px;height:100px;border: solid;"></div>
+                                </div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs">Pages to convert</div>
+                                <div class="col-sm-4"><input pattern="[0-9,]+" id="txtPageNos" type="text" class="form-control" /></div>
+                                <div class="col-sm-2 example-text">Ex: 1,4,70</div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-center"></div>
+                                <div class="col-sm-6 padding-left-25">Or</div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs">All pages to convert</div>
+                                <div class="col-sm-6"><input id="cbAllPages" type="checkbox" checked /></div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs">Image Size</div>
+                                <div class="col-sm-4">
+                                    <select id="txtImageSize" class="form-control">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                        <option value="3">3</option>
+                                        <option value="4">4</option>
+                                        <option value="5">5</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2"></div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs">Image Format</div>
+                                <div class="col-sm-4">
+                                    <select id="ddimageFormat" class="form-control">
+                                        <option value="1">PNG</option>
+                                        <option value="2">JPEG</option>
+                                    </select>
+                                </div>
+                                <div class="col-sm-2"></div>
+                            </div><div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs">Page Naming</div>
+                                <div class="col-sm-4"><input id="txtnamingConvention" type="text" placeholder="page_" class="form-control" /></div>
+                                <div class="col-sm-2"></div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs"></div>
+                                <div class="col-sm-6"><input id="btnConvertPDF" type="button" value="Convert" class="btn btn-primary float-right" /></div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                            <div class="row margin-10">
+                                <div class="col-sm-6 text-left-xs"></div>
+                                <div class="col-sm-6" id="divImages"></div>
+                            </div>
+                            <div class="prevent-collision"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div>
+        <div class="footer-panel float-right">Feedback, suggestions and problems: amitsb3747@gmail.com</div>
+    </div>
+    <div id="divCanvas" style="display:none"></div>
+    <div id="divCanvaslinks"></div>
+</body>
+</html>

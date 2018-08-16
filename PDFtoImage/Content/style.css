@@ -1,0 +1,180 @@
+﻿body {
+    font-family: 'Segoe UI Emoji';
+    color: cadetblue;
+}
+
+input[type=checkbox] {
+    zoom: 1.5;
+}
+
+.custom-file-input::-webkit-file-upload-button {
+    visibility: hidden;
+}
+
+.custom-file-input::before {
+    content: 'Upload';
+    display: inline-block;
+    background: -webkit-linear-gradient(top, #f9f9f9, #e3e3e3);
+    border: 1px solid #999;
+    border-radius: 3px;
+    padding: 3px 10px;
+    outline: none;
+    white-space: nowrap;
+    -webkit-user-select: none;
+    cursor: pointer;
+    text-shadow: 1px 1px #fff;
+    font-weight: 500;
+    font-size: 10pt;
+}
+
+.custom-file-input:hover::before {
+    border-color: black;
+}
+
+.custom-file-input:active::before {
+    background: -webkit-linear-gradient(top, #e3e3e3, #f9f9f9);
+}
+
+#nameFile {
+    content: 'Upload';
+}
+
+.margin-top-10 {
+    margin-top: 10px !important;
+}
+
+.margin-10 {
+    margin: 10px;
+}
+
+.padding-left-15 {
+    padding-left: 15px;
+}
+
+.padding-left-25 {
+    padding-left: 25px !important;
+}
+
+.size-fixed {
+    resize: none;
+}
+
+.div-content {
+    margin-left: 140px;
+    padding-top: 10px;
+    font-size: 14px;
+}
+
+.ad1 {
+    width: 100%;
+    margin-right: 3px;
+    display: block;
+    border: 0;
+    margin-top: 3px;
+}
+
+.display-name {
+    font-size: 35px;
+    word-wrap: break-word;
+    padding-bottom: 15px;
+    overflow: hidden;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.ad1-side {
+    border: 0;
+    margin-top: 3px;
+    display: block;
+}
+
+.example-text {
+    margin-top: 7px;
+}
+
+.text-left-xs {
+    text-align: center;
+}
+
+.footer-panel {
+    bottom: 0;
+    padding-right: 10px;
+}
+
+
+@media(max-width:1190px) {
+    .display-name {
+        font-size: 70px !important;
+    }
+}
+
+@media(max-width:512px) {
+    .display-name {
+        font-size: 58px !important;
+    }
+}
+
+@media (max-width:496px) {
+    .display-name {
+        font-size: 50px !important;
+    }
+}
+
+@media (max-width:388px) {
+    .display-name {
+        font-size: 33px !important;
+    }
+}
+
+@media(max-width:769px) {
+    .ad1-side {
+        display: none;
+    }
+
+    .text-left-xs {
+        text-align: left;
+        margin-top: 5px;
+    }
+
+    .div-content {
+        margin-left: 10px;
+    }
+}
+
+@media (max-width:991px) {
+    .ad1 {
+        display: none;
+    }
+
+    .ad1-side {
+        width: 140px;
+    }
+}
+
+@media(max-width:1135px) {
+    .example-text {
+        font-size: 12px;
+    }
+}
+
+@media(max-width:1052px) {
+    .example-text {
+        font-size: 10px;
+    }
+}
+
+@media(max-width:767px) {
+    .example-text {
+        font-size: 14px;
+    }
+
+    .prevent-collision {
+        height: 6px;
+    }
+}
+
+.float-right {
+    float: right;
+}
